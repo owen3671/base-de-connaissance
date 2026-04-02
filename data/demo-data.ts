@@ -1,0 +1,170 @@
+import type { KnowledgeNote } from "@/types";
+
+export const demoNotes: KnowledgeNote[] = [
+  {
+    id: "note-podcast-soft-power",
+    user_id: null,
+    title: "Le soft power ne remplace pas la puissance dure",
+    category: "Geopolitique",
+    subcategory: "Relations internationales",
+    summary:
+      "Un Etat influence durablement quand il combine attractivite culturelle, credibilite economique et capacite a proteger ses interets.",
+    key_idea: "Le soft power amplifie une strategie, il ne corrige pas une faiblesse structurelle.",
+    content:
+      "Dans un podcast sur les rivalites internationales, l'intervenant rappelait que l'image d'un pays fonctionne surtout quand elle repose sur des institutions solides, une economie lisible et une diplomatie constante. Sans base materielle, l'influence narrative reste fragile.",
+    example:
+      "Les series, universites et medias d'un pays peuvent attirer, mais ils ont plus d'effet quand ils s'appuient sur une stabilite politique et des alliances fiables.",
+    source: "Podcast Le Collimateur",
+    tags: ["soft power", "diplomatie", "strategie"],
+    importance: "eleve",
+    status: "en_cours",
+    created_at: "2026-03-12T09:15:00.000Z",
+    updated_at: "2026-03-24T08:00:00.000Z",
+  },
+  {
+    id: "note-citation-taleb",
+    user_id: null,
+    title: "Ce qui est fragile deteste la volatilite",
+    category: "Citations",
+    subcategory: "Antifragilite",
+    summary:
+      "La fragilite se revele surtout quand un systeme subit du stress, de l'incertitude ou des chocs repetes.",
+    key_idea: "Observer une reaction au stress en dit plus que l'apparence de solidite.",
+    content:
+      "Citation issue de Taleb. Elle invite a juger une idee, une organisation ou un modele economique selon sa resistance aux perturbations plutot que selon son apparence de stabilite.",
+    example:
+      "Une entreprise tres rentable en periode calme peut etre fragile si une petite hausse des taux ou un probleme logistique suffit a casser son modele.",
+    source: "Lecture Antifragile",
+    tags: ["taleb", "fragilite", "risque"],
+    importance: "moyen",
+    status: "maitrise",
+    created_at: "2026-02-28T18:40:00.000Z",
+    updated_at: "2026-03-29T10:20:00.000Z",
+  },
+  {
+    id: "note-histoire-westphalie",
+    user_id: null,
+    title: "Les traites de Westphalie structurent l'idee d'Etat souverain",
+    category: "Histoire",
+    subcategory: "Europe moderne",
+    summary:
+      "Westphalie est souvent utilise comme repere symbolique pour expliquer la souverainete territoriale et la non-ingerenge.",
+    key_idea: "Un evenement historique devient parfois plus important par son usage conceptuel que par son detail juridique exact.",
+    content:
+      "La paix de Westphalie ne cree pas a elle seule le monde moderne, mais elle sert de point d'appui pedagogique pour comprendre l'equilibre entre souverainete, frontieres et diplomatie entre Etats.",
+    example:
+      "En geopo, on mobilise Westphalie pour expliquer pourquoi les Etats defendent jalousement leurs competences territoriales.",
+    source: "Cours d'histoire politique",
+    tags: ["westphalie", "souverainete", "etat"],
+    importance: "eleve",
+    status: "a_apprendre",
+    created_at: "2026-03-21T12:00:00.000Z",
+    updated_at: "2026-03-21T12:00:00.000Z",
+  },
+  {
+    id: "note-economie-effet-cantillon",
+    user_id: null,
+    title: "L'effet Cantillon distribue inegalement l'argent nouvellement cree",
+    category: "Economie",
+    subcategory: "Monnaie",
+    summary:
+      "La creation monetaire n'affecte pas tout le monde au meme moment ni de la meme facon.",
+    key_idea: "L'ordre d'arrivee de la monnaie compte autant que sa quantite.",
+    content:
+      "Les premiers receveurs de monnaie nouvellement injectee peuvent depenser avant que les prix n'aient completement ajuste. Les derniers subissent plus souvent la hausse des prix sans beneficier du meme pouvoir d'achat.",
+    example:
+      "Des acteurs financiers ou institutionnels proches du credit peuvent reagir avant les menages qui voient surtout l'inflation se diffuser ensuite.",
+    source: "Podcast economie monetaire",
+    tags: ["monnaie", "inflation", "cantillon"],
+    importance: "eleve",
+    status: "en_cours",
+    created_at: "2026-03-03T07:45:00.000Z",
+    updated_at: "2026-03-19T16:30:00.000Z",
+  },
+  {
+    id: "note-concept-lindy",
+    user_id: null,
+    title: "L'effet Lindy comme heuristique de duree",
+    category: "Concepts",
+    subcategory: "Heuristiques",
+    summary:
+      "Plus une idee non perissable a dure longtemps, plus elle a des chances de continuer a durer.",
+    key_idea: "Le temps sert de filtre robuste pour les idees, les livres et certains usages.",
+    content:
+      "L'effet Lindy s'applique surtout a ce qui ne vieillit pas biologiquement: idees, technologies de base, textes, habitudes culturelles. Ce n'est pas une loi absolue, mais un raccourci utile pour evaluer la robustesse.",
+    example:
+      "Un livre lu depuis cinquante ans a souvent plus de probabilite d'etre encore lu demain qu'un ouvrage a la mode depuis deux mois.",
+    source: "Notes de lecture",
+    tags: ["lindy", "heuristique", "decision"],
+    importance: "moyen",
+    status: "maitrise",
+    created_at: "2026-01-16T11:10:00.000Z",
+    updated_at: "2026-03-30T07:30:00.000Z",
+  },
+  {
+    id: "note-culture-g-suez",
+    user_id: null,
+    title: "Le canal de Suez reste un point de passage strategique",
+    category: "Culture G",
+    subcategory: "Routes commerciales",
+    summary:
+      "Un goulet d'etranglement maritime peut modifier tres vite les couts, les delais et les priorites geopolitiques.",
+    key_idea: "Les infrastructures critiques faconnent la geopolitique autant que les ideologies.",
+    content:
+      "Le canal de Suez concentre une partie majeure du commerce mondial. Sa perturbation rallonge les routes, perturbe les chaines d'approvisionnement et rappelle le lien direct entre geographie et economie.",
+    example:
+      "Quand un blocage se produit, certaines cargaisons doivent contourner l'Afrique, ce qui change immediatement les delais et les couts du fret.",
+    source: "Article de synthese",
+    tags: ["suez", "commerce", "logistique"],
+    importance: "moyen",
+    status: "a_apprendre",
+    created_at: "2026-03-27T14:05:00.000Z",
+    updated_at: "2026-03-27T14:05:00.000Z",
+  },
+  {
+    id: "note-podcast-habitudes",
+    user_id: null,
+    title: "Une habitude tient mieux quand le contexte la rend evidente",
+    category: "Podcasts",
+    subcategory: "Apprentissage",
+    summary:
+      "Les habitudes durables reposent moins sur la motivation que sur la friction minimale et les bons declencheurs.",
+    key_idea: "Modifier l'environnement est souvent plus efficace que compter sur la volonte.",
+    content:
+      "Podcast sur les routines cognitives. L'idee centrale: pour retenir une information ou appliquer une methode, il faut reduire l'effort d'acces, ritualiser le moment et lier l'action a un contexte stable.",
+    example:
+      "Laisser une page de recap visible apres un podcast augmente les chances de transformer l'ecoute en fiche exploitable.",
+    source: "Podcast The Knowledge Project",
+    tags: ["habitudes", "apprentissage", "friction"],
+    importance: "faible",
+    status: "en_cours",
+    created_at: "2026-03-18T06:30:00.000Z",
+    updated_at: "2026-03-26T17:10:00.000Z",
+  },
+  {
+    id: "note-revision-decision",
+    user_id: null,
+    title: "Checklist de decision rapide avant d'accepter une idee",
+    category: "Revisions",
+    subcategory: "Methode",
+    summary:
+      "Verifier la source, le contexte, l'horizon temporel et les incentives evite de memoriser trop vite une idee seduisante.",
+    key_idea: "Une bonne fiche commence par une bonne question sur la fiabilite de l'information.",
+    content:
+      "Quand une idee parait brillante, je dois verifier qui parle, sur quelles donnees, pour quel public et avec quelles limites. Cette micro-checklist me force a ralentir avant de stocker l'information comme vraie.",
+    example:
+      "Avant d'enregistrer un chiffre economique dans l'app, je note si c'est une moyenne, une tendance ou un point de donnees isole.",
+    source: "Systeme personnel",
+    tags: ["revision", "checklist", "esprit critique"],
+    importance: "eleve",
+    status: "a_apprendre",
+    created_at: "2026-03-30T19:25:00.000Z",
+    updated_at: "2026-03-30T19:25:00.000Z",
+  },
+];
+
+export const dashboardTips = [
+  "Capturez une idee en moins de 30 secondes, puis revenez l'enrichir plus tard.",
+  "Donnez une seule idee cle par fiche pour retrouver plus vite l'essentiel.",
+  "Utilisez les tags comme mots de rappel, pas comme categories bis.",
+];
