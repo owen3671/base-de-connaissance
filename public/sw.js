@@ -1,4 +1,4 @@
-const CACHE_NAME = "atlas-personnel-v1";
+const CACHE_NAME = "atlas-personnel-v2";
 const OFFLINE_URL = "/offline";
 const PRE_CACHE_URLS = ["/", "/offline", "/manifest.webmanifest", "/icons/app-icon.svg", "/icons/app-maskable.svg"];
 
