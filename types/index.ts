@@ -11,6 +11,7 @@ export type NoteCategory =
 export type NoteImportance = "faible" | "moyen" | "eleve";
 export type NoteStatus = "a_apprendre" | "en_cours" | "maitrise";
 export type ReviewBucket = "today" | "soon" | "later";
+export type ReviewCalendarIntensity = "none" | "light" | "medium" | "strong";
 export type NotesSort = "recent" | "oldest" | "importance";
 export type DataMode = "local" | "supabase";
 
@@ -74,6 +75,20 @@ export interface ReviewGroup {
   label: string;
   description: string;
   notes: KnowledgeNote[];
+}
+
+export interface ReviewCalendarDay {
+  key: string;
+  dayNumber: number;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  notes: KnowledgeNote[];
+  intensity: ReviewCalendarIntensity;
+}
+
+export interface ReviewCalendarMonth {
+  monthLabel: string;
+  days: ReviewCalendarDay[];
 }
 
 export interface QuizItem {

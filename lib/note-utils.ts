@@ -8,6 +8,9 @@ import type {
   NoteStatus,
   NotesSort,
   QuizItem,
+  ReviewCalendarDay,
+  ReviewCalendarIntensity,
+  ReviewCalendarMonth,
   ReviewBucket,
   ReviewGroup,
 } from "@/types";
@@ -19,6 +22,28 @@ const importanceWeight: Record<NoteImportance, number> = {
 };
 
 const collator = new Intl.Collator("fr-FR");
+const monthFormatter = new Intl.DateTimeFormat("fr-FR", {
+  month: "long",
+  year: "numeric",
+});
+
+const reviewDayOffsets: Record<NoteStatus, Record<NoteImportance, number>> = {
+  a_apprendre: {
+    faible: 0,
+    moyen: 0,
+    eleve: 0,
+  },
+  en_cours: {
+    faible: 4,
+    moyen: 3,
+    eleve: 2,
+  },
+  maitrise: {
+    faible: 21,
+    moyen: 14,
+    eleve: 7,
+  },
+};
 
 export function createEmptyNoteDraft(): KnowledgeNoteDraft {
   return {
@@ -181,6 +206,65 @@ export function buildReviewGroups(notes: KnowledgeNote[]): ReviewGroup[] {
       notes: orderedNotes.filter((note) => getReviewBucket(note) === "later"),
     },
   ];
+}
+
+export function buildReviewCalendar(notes: KnowledgeNote[], focusedMonth: Date, currentDate = new Date()): ReviewCalendarMonth {
+  const monthStart = startOfDay(new Date(focusedMonth.getFullYear(), focusedMonth.getMonth(), 1));
+  const monthEnd = startOfDay(new Date(focusedMonth.getFullYear(), focusedMonth.getMonth() + 1, 0));
+  const calendarStart = addDays(monthStart, -getCalendarWeekday(monthStart));
+  const calendarEnd = addDays(monthEnd, 6 - getCalendarWeekday(monthEnd));
+  const notesByDate = notes.reduce<Record<string, KnowledgeNote[]>>((accumulator, note) => {
+    const scheduledDate = getScheduledReviewDate(note, currentDate);
+    const key = formatCalendarDateKey(scheduledDate);
+
+    accumulator[key] = [...(accumulator[key] ?? []), note];
+    return accumulator;
+  }, {});
+
+  const days: ReviewCalendarDay[] = [];
+
+  for (let cursor = calendarStart; cursor <= calendarEnd; cursor = addDays(cursor, 1)) {
+    const key = formatCalendarDateKey(cursor);
+    const dayNotes = sortNotes(notesByDate[key] ?? [], "importance");
+
+    days.push({
+      key,
+      dayNumber: cursor.getDate(),
+      isCurrentMonth: cursor.getMonth() === focusedMonth.getMonth(),
+      isToday: key === formatCalendarDateKey(currentDate),
+      notes: dayNotes,
+      intensity: getCalendarIntensity(dayNotes.length),
+    });
+  }
+
+  return {
+    monthLabel: capitalize(monthFormatter.format(monthStart)),
+    days,
+  };
+}
+
+export function formatCalendarDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function parseCalendarDateKey(key: string): Date {
+  const [year, month, day] = key.split("-").map(Number);
+  return startOfDay(new Date(year, month - 1, day));
+}
+
+export function formatCalendarLongDate(key: string): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(parseCalendarDateKey(key));
+}
+
+export function shiftCalendarMonth(date: Date, amount: number): Date {
+  return startOfDay(new Date(date.getFullYear(), date.getMonth() + amount, 1));
 }
 
 export function getImportanceLabel(importance: NoteImportance): string {
@@ -382,4 +466,50 @@ function getDayDifference(value: string, currentDate: Date): number {
   const updatedAt = new Date(value).getTime();
   const now = currentDate.getTime();
   return Math.max(0, Math.floor((now - updatedAt) / (1000 * 60 * 60 * 24)));
+}
+
+function getScheduledReviewDate(note: KnowledgeNote, currentDate: Date): Date {
+  const noteDate = startOfDay(new Date(note.updated_at));
+  const rawScheduledDate = addDays(noteDate, reviewDayOffsets[note.status][note.importance]);
+  const today = startOfDay(currentDate);
+
+  if (rawScheduledDate < today) {
+    return today;
+  }
+
+  return rawScheduledDate;
+}
+
+function getCalendarIntensity(count: number): ReviewCalendarIntensity {
+  if (count >= 4) {
+    return "strong";
+  }
+
+  if (count >= 2) {
+    return "medium";
+  }
+
+  if (count >= 1) {
+    return "light";
+  }
+
+  return "none";
+}
+
+function getCalendarWeekday(date: Date): number {
+  return (date.getDay() + 6) % 7;
+}
+
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDays(date: Date, amount: number): Date {
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() + amount);
+  return copy;
+}
+
+function capitalize(value: string): string {
+  return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }

@@ -46,6 +46,10 @@ Puis ouvrir [http://localhost:3000](http://localhost:3000).
 3. Coller le contenu de `supabase/schema.sql`
 4. Recuperer l'URL du projet et la cle anon publique
 5. Les placer dans `.env.local`
+6. Dans `Authentication > URL Configuration`, definir :
+   - `Site URL` = votre URL Vercel de production
+   - `Redirect URLs` = votre URL Vercel avec `/auth/callback` et `/auth/confirm`
+   - en local, vous pouvez aussi ajouter `http://localhost:3000/auth/callback`
 
 Quand Supabase n'est pas configure, l'application reste utilisable en mode local avec des donnees de demonstration stockees dans le navigateur.
 
