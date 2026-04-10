@@ -32,6 +32,23 @@ export function SearchIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function CalendarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <BaseIcon {...props}>
+      <rect x="4" y="5" width="16" height="15" rx="2.5" />
+      <path d="M8 3v4" />
+      <path d="M16 3v4" />
+      <path d="M4 9.5h16" />
+      <path d="M8 13h.01" />
+      <path d="M12 13h.01" />
+      <path d="M16 13h.01" />
+      <path d="M8 17h.01" />
+      <path d="M12 17h.01" />
+      <path d="M16 17h.01" />
+    </BaseIcon>
+  );
+}
+
 export function RefreshIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <BaseIcon {...props}>

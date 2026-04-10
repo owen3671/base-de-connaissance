@@ -8,6 +8,12 @@ export const navigationItems: NavigationItem[] = [
     description: "Dashboard, stats et raccourcis vers les fiches importantes.",
   },
   {
+    href: "/calendrier",
+    label: "Calendrier",
+    shortLabel: "Calendrier",
+    description: "Planifier vos journees, semaines et mois dans une seule vue simple.",
+  },
+  {
     href: "/ajouter",
     label: "Ajouter",
     shortLabel: "Ajouter",
@@ -32,3 +38,5 @@ export const navigationItems: NavigationItem[] = [
     description: "Connexion Supabase, mode local et preferences.",
   },
 ];
+
+export const mobileNavigationItems = navigationItems.filter((item) => item.href !== "/ajouter");

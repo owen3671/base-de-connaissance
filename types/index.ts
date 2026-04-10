@@ -14,6 +14,9 @@ export type ReviewBucket = "today" | "soon" | "later";
 export type ReviewCalendarIntensity = "none" | "light" | "medium" | "strong";
 export type NotesSort = "recent" | "oldest" | "importance";
 export type DataMode = "local" | "supabase";
+export type PlannerItemType = "tache" | "rendez_vous" | "revision" | "objectif";
+export type PlannerItemStatus = "planifie" | "termine";
+export type PlannerView = "day" | "week" | "month";
 
 export interface KnowledgeNoteDraft {
   title: string;
@@ -32,6 +35,26 @@ export interface KnowledgeNoteDraft {
 export interface KnowledgeNote extends KnowledgeNoteDraft {
   id: string;
   user_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlannerItemDraft {
+  title: string;
+  details: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  all_day: boolean;
+  item_type: PlannerItemType;
+  status: PlannerItemStatus;
+}
+
+export interface PlannerItem extends Omit<PlannerItemDraft, "date" | "start_time" | "end_time"> {
+  id: string;
+  user_id: string | null;
+  starts_at: string;
+  ends_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -91,6 +114,26 @@ export interface ReviewCalendarMonth {
   days: ReviewCalendarDay[];
 }
 
+export interface PlannerCalendarDay {
+  key: string;
+  dayNumber: number;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  items: PlannerItem[];
+}
+
+export interface PlannerCalendarMonth {
+  monthLabel: string;
+  days: PlannerCalendarDay[];
+}
+
+export interface PlannerTimelineDay {
+  key: string;
+  label: string;
+  isToday: boolean;
+  items: PlannerItem[];
+}
+
 export interface QuizItem {
   question: string;
   answer: string;
@@ -100,9 +143,19 @@ export interface SaveNotePayload extends KnowledgeNoteDraft {
   id?: string;
 }
 
+export interface SavePlannerItemPayload extends PlannerItemDraft {
+  id?: string;
+}
+
 export interface SaveNoteResult {
   success: boolean;
   note?: KnowledgeNote;
+  error?: string;
+}
+
+export interface SavePlannerItemResult {
+  success: boolean;
+  plannerItem?: PlannerItem;
   error?: string;
 }
 
@@ -147,6 +200,36 @@ export interface Database {
           tags?: string[] | null;
           importance?: NoteImportance;
           status?: NoteStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      planner_items: {
+        Row: PlannerItem;
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          title: string;
+          details?: string | null;
+          item_type: PlannerItemType;
+          status: PlannerItemStatus;
+          starts_at: string;
+          ends_at?: string | null;
+          all_day?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          title?: string;
+          details?: string | null;
+          item_type?: PlannerItemType;
+          status?: PlannerItemStatus;
+          starts_at?: string;
+          ends_at?: string | null;
+          all_day?: boolean;
           created_at?: string;
           updated_at?: string;
         };

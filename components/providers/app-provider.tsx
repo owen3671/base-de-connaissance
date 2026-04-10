@@ -9,7 +9,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { readLocalNotes, writeLocalNotes } from "@/lib/local-storage";
+import {
+  readLocalNotes,
+  readLocalPlannerItems,
+  writeLocalNotes,
+  writeLocalPlannerItems,
+} from "@/lib/local-storage";
 import {
   advanceNoteStatus,
   buildDeletedNotes,
@@ -17,18 +22,30 @@ import {
   createEmptyNoteDraft,
   sortNotes,
 } from "@/lib/note-utils";
+import {
+  advancePlannerItemStatus,
+  buildPlannerDraftFromItem,
+  buildDeletedPlannerItems,
+  buildPlannerItemRecord,
+  buildUpsertedPlannerItems,
+  sortPlannerItems,
+} from "@/lib/planner-utils";
 import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "@/lib/supabase/config";
 import type {
   AuthResult,
   DataMode,
   Database,
   KnowledgeNote,
+  PlannerItem,
   SaveNotePayload,
   SaveNoteResult,
+  SavePlannerItemPayload,
+  SavePlannerItemResult,
 } from "@/types";
 
 interface AppContextValue {
   notes: KnowledgeNote[];
+  plannerItems: PlannerItem[];
   isLoading: boolean;
   isAuthenticated: boolean;
   isSupabaseConfigured: boolean;
@@ -40,6 +57,9 @@ interface AppContextValue {
   saveNote: (payload: SaveNotePayload) => Promise<SaveNoteResult>;
   deleteNote: (noteId: string) => Promise<AuthResult>;
   markNoteReviewed: (noteId: string) => Promise<SaveNoteResult>;
+  savePlannerItem: (payload: SavePlannerItemPayload) => Promise<SavePlannerItemResult>;
+  deletePlannerItem: (plannerItemId: string) => Promise<AuthResult>;
+  togglePlannerItemStatus: (plannerItemId: string) => Promise<SavePlannerItemResult>;
   signIn: (email: string, password: string) => Promise<AuthResult>;
   signUp: (email: string, password: string) => Promise<AuthResult>;
   signOut: () => Promise<AuthResult>;
@@ -60,7 +80,21 @@ function normalizeNote(note: Database["public"]["Tables"]["notes"]["Row"]): Know
   };
 }
 
-function buildNoteRecord(payload: SaveNotePayload, currentNote?: KnowledgeNote, userId?: string | null): KnowledgeNote {
+function normalizePlannerItem(
+  plannerItem: Database["public"]["Tables"]["planner_items"]["Row"],
+): PlannerItem {
+  return {
+    ...plannerItem,
+    details: plannerItem.details ?? "",
+    ends_at: plannerItem.ends_at ?? null,
+  };
+}
+
+function buildNoteRecord(
+  payload: SaveNotePayload,
+  currentNote?: KnowledgeNote,
+  userId?: string | null,
+): KnowledgeNote {
   const now = new Date().toISOString();
 
   return {
@@ -99,8 +133,26 @@ async function fetchSupabaseNotes(
   return (data ?? []).map(normalizeNote);
 }
 
+async function fetchSupabasePlannerItems(
+  client: SupabaseClient<Database, "public">,
+  userId: string,
+): Promise<PlannerItem[]> {
+  const { data, error } = await client
+    .from("planner_items")
+    .select("*")
+    .eq("user_id", userId)
+    .order("starts_at", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return sortPlannerItems((data ?? []).map(normalizePlannerItem));
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [notes, setNotes] = useState<KnowledgeNote[]>([]);
+  const [plannerItems, setPlannerItems] = useState<PlannerItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -110,8 +162,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    const localNotes = sortNotes(readLocalNotes(), "recent");
-    setNotes(localNotes);
+    setNotes(sortNotes(readLocalNotes(), "recent"));
+    setPlannerItems(sortPlannerItems(readLocalPlannerItems()));
 
     if (!supabase) {
       setSourceMode("local");
@@ -128,6 +180,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!supabase || !nextSession?.user) {
         setSourceMode("local");
         setNotes(sortNotes(readLocalNotes(), "recent"));
+        setPlannerItems(sortPlannerItems(readLocalPlannerItems()));
         setIsLoading(false);
         return;
       }
@@ -135,12 +188,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
 
       try {
-        const remoteNotes = await fetchSupabaseNotes(supabase, nextSession.user.id);
+        const [remoteNotes, remotePlannerItems] = await Promise.all([
+          fetchSupabaseNotes(supabase, nextSession.user.id),
+          fetchSupabasePlannerItems(supabase, nextSession.user.id),
+        ]);
         setSourceMode("supabase");
         setNotes(remoteNotes);
+        setPlannerItems(remotePlannerItems);
       } catch {
         setSourceMode("local");
         setNotes(sortNotes(readLocalNotes(), "recent"));
+        setPlannerItems(sortPlannerItems(readLocalPlannerItems()));
       } finally {
         setIsLoading(false);
       }
@@ -170,6 +228,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!supabase || !user) {
       setSourceMode("local");
       setNotes(sortNotes(readLocalNotes(), "recent"));
+      setPlannerItems(sortPlannerItems(readLocalPlannerItems()));
       setIsLoading(false);
       return;
     }
@@ -177,12 +236,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
 
     try {
-      const remoteNotes = await fetchSupabaseNotes(supabase, user.id);
+      const [remoteNotes, remotePlannerItems] = await Promise.all([
+        fetchSupabaseNotes(supabase, user.id),
+        fetchSupabasePlannerItems(supabase, user.id),
+      ]);
       setSourceMode("supabase");
       setNotes(remoteNotes);
+      setPlannerItems(remotePlannerItems);
     } catch {
       setSourceMode("local");
       setNotes(sortNotes(readLocalNotes(), "recent"));
+      setPlannerItems(sortPlannerItems(readLocalPlannerItems()));
     } finally {
       setIsLoading(false);
     }
@@ -238,6 +302,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }
 
+  async function savePlannerItem(payload: SavePlannerItemPayload): Promise<SavePlannerItemResult> {
+    if (!payload.title.trim()) {
+      return {
+        success: false,
+        error: "Le titre est obligatoire.",
+      };
+    }
+
+    const currentPlannerItem = plannerItems.find((item) => item.id === payload.id);
+    const nextPlannerItem = buildPlannerItemRecord(payload, currentPlannerItem, user?.id ?? null);
+
+    if (!supabase || !user) {
+      const nextPlannerItems = buildUpsertedPlannerItems(plannerItems, nextPlannerItem);
+      setSourceMode("local");
+      setPlannerItems(nextPlannerItems);
+      writeLocalPlannerItems(nextPlannerItems);
+      return {
+        success: true,
+        plannerItem: nextPlannerItem,
+      };
+    }
+
+    const plannerItemPayload: Database["public"]["Tables"]["planner_items"]["Insert"] = {
+      ...nextPlannerItem,
+      user_id: user.id,
+    };
+
+    const { data, error } = await supabase
+      .from("planner_items")
+      .upsert(plannerItemPayload as never)
+      .select("*")
+      .single();
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    const normalizedPlannerItem = normalizePlannerItem(data);
+    setSourceMode("supabase");
+    setPlannerItems(buildUpsertedPlannerItems(plannerItems, normalizedPlannerItem));
+
+    return {
+      success: true,
+      plannerItem: normalizedPlannerItem,
+    };
+  }
+
   async function deleteNote(noteId: string): Promise<AuthResult> {
     if (!supabase || !user) {
       const nextNotes = buildDeletedNotes(notes, noteId);
@@ -265,6 +379,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }
 
+  async function deletePlannerItem(plannerItemId: string): Promise<AuthResult> {
+    if (!supabase || !user) {
+      const nextPlannerItems = buildDeletedPlannerItems(plannerItems, plannerItemId);
+      setSourceMode("local");
+      setPlannerItems(nextPlannerItems);
+      writeLocalPlannerItems(nextPlannerItems);
+      return {
+        success: true,
+      };
+    }
+
+    const { error } = await supabase
+      .from("planner_items")
+      .delete()
+      .eq("id", plannerItemId)
+      .eq("user_id", user.id);
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    setSourceMode("supabase");
+    setPlannerItems(buildDeletedPlannerItems(plannerItems, plannerItemId));
+    return {
+      success: true,
+    };
+  }
+
   async function markNoteReviewed(noteId: string): Promise<SaveNoteResult> {
     const currentNote = notes.find((note) => note.id === noteId);
 
@@ -281,6 +426,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: currentNote.id,
       status: advanceNoteStatus(currentNote.status),
       tags: currentNote.tags,
+    });
+  }
+
+  async function togglePlannerItemStatus(plannerItemId: string): Promise<SavePlannerItemResult> {
+    const currentPlannerItem = plannerItems.find((plannerItem) => plannerItem.id === plannerItemId);
+
+    if (!currentPlannerItem) {
+      return {
+        success: false,
+        error: "Element du calendrier introuvable.",
+      };
+    }
+
+    return savePlannerItem({
+      ...buildPlannerDraftFromItem(currentPlannerItem),
+      status: advancePlannerItemStatus(currentPlannerItem.status),
     });
   }
 
@@ -362,6 +523,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider
       value={{
         notes,
+        plannerItems,
         isLoading,
         isAuthenticated: Boolean(user),
         isSupabaseConfigured,
@@ -373,6 +535,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         saveNote,
         deleteNote,
         markNoteReviewed,
+        savePlannerItem,
+        deletePlannerItem,
+        togglePlannerItemStatus,
         signIn,
         signUp,
         signOut,

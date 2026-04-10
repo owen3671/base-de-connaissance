@@ -165,3 +165,107 @@ inserted as (
   returning title
 )
 select count(*) as inserted_count from inserted;
+
+with first_user as (
+  select id
+  from auth.users
+  order by created_at asc nulls last, id asc
+  limit 1
+),
+seed_planner_items (
+  title,
+  details,
+  item_type,
+  status,
+  starts_at,
+  ends_at,
+  all_day
+) as (
+  values
+    (
+      'Revue matinale des fiches',
+      'Revoir 3 fiches importantes avant de commencer la journee.',
+      'revision',
+      'planifie',
+      '2026-04-10T07:30:00+02:00',
+      '2026-04-10T08:00:00+02:00',
+      false
+    ),
+    (
+      'Capture rapide apres podcast',
+      'Noter l idee cle du podcast du matin avant de passer a autre chose.',
+      'tache',
+      'planifie',
+      '2026-04-10T12:15:00+02:00',
+      '2026-04-10T12:35:00+02:00',
+      false
+    ),
+    (
+      'Bloc deep work economie',
+      'Synthese de 2 contenus sur la politique monetaire et extraction des points utiles.',
+      'objectif',
+      'planifie',
+      '2026-04-11T09:00:00+02:00',
+      '2026-04-11T11:00:00+02:00',
+      false
+    ),
+    (
+      'Lecture longue histoire',
+      'Session sans notifications pour avancer sur les notes d histoire moderne.',
+      'tache',
+      'planifie',
+      '2026-04-12T00:00:00+02:00',
+      '2026-04-12T23:59:00+02:00',
+      true
+    ),
+    (
+      'Appel geopolitique',
+      'Debrief avec un ami sur les points a retenir du dernier episode.',
+      'rendez_vous',
+      'planifie',
+      '2026-04-13T18:30:00+02:00',
+      '2026-04-13T19:00:00+02:00',
+      false
+    ),
+    (
+      'Revision hebdo',
+      'Faire le tri entre ce qui est maitrise, a revoir bientot et a approfondir.',
+      'revision',
+      'termine',
+      '2026-04-15T20:00:00+02:00',
+      '2026-04-15T20:45:00+02:00',
+      false
+    )
+),
+inserted as (
+  insert into public.planner_items (
+    user_id,
+    title,
+    details,
+    item_type,
+    status,
+    starts_at,
+    ends_at,
+    all_day
+  )
+  select
+    first_user.id,
+    seed_planner_items.title,
+    seed_planner_items.details,
+    seed_planner_items.item_type,
+    seed_planner_items.status,
+    seed_planner_items.starts_at::timestamptz,
+    seed_planner_items.ends_at::timestamptz,
+    seed_planner_items.all_day
+  from first_user
+  cross join seed_planner_items
+  where not exists (
+    select 1
+    from public.planner_items p
+    where p.user_id = first_user.id
+      and p.title = seed_planner_items.title
+      and p.starts_at = seed_planner_items.starts_at::timestamptz
+  )
+  returning title
+)
+select count(*) as inserted_planner_count from inserted;
